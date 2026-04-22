@@ -1,0 +1,57 @@
+# docker-compose.yml - Studypool Clone
+# Orchestrates PHP App + MySQL Database containers
+
+version: '3.8'
+
+services:
+  # ---- PHP/Apache Application ----
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: studypool-app
+    image: fa23-bcs-195:latest
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+      - DB_NAME=studypool_clone
+    volumes:
+      - ./studypool_clone/uploads:/var/www/html/uploads
+    networks:
+      - studypool-network
+    restart: unless-stopped
+
+  # ---- MySQL Database ----
+  db:
+    image: mysql:8.0
+    container_name: studypool-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: studypool_clone
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - "./studypool_clone (2).sql:/docker-entrypoint-initdb.d/init.sql"
+    networks:
+      - studypool-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  db_data:
+
+networks:
+  studypool-network:
+    driver: bridge

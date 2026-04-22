@@ -1,0 +1,30 @@
+# Git files
+.git
+.gitignore
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Documentation and non-essential files
+README.md
+Poster.jpeg
+*.sql
+
+# Docker files (no need to copy these into the image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Uploads directory (will be mounted as volume)
+studypool_clone/uploads/*
+
+# Python face verification (not needed in PHP container)
+studypool_clone/verify_face_and_id.py
