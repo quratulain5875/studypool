@@ -1,11 +1,11 @@
 <?php
 // Include database connection file
-include 'dbConnection.php';
+require_once __DIR__ . '/dbconnection.php';
 session_start();
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: signin.php');
     exit();
 }
 

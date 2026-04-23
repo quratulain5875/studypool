@@ -1,10 +1,10 @@
 <?php
-include 'dbConnection.php';
+require_once __DIR__ . '/dbconnection.php';
 session_start();
 
 // Check if the user is logged in and has a student role
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: signin.php');
     exit();
 }
 

@@ -72,12 +72,8 @@
         <h2 class="mb-4">Available Book Guides</h2>
         <div class="row">
             <?php
-            // Database connection
-            $conn = new mysqli("localhost:3307", "root", "", "studypool_clone");
-
-            if ($conn->connect_error) {
-                die("Connection failed: " . $conn->connect_error);
-            }
+            // Database connection (Docker: uses env vars from dbconnection.php)
+            require_once __DIR__ . '/dbconnection.php';
 
             // Fetch book guides from the database
             $sql = "SELECT * FROM book_guides";

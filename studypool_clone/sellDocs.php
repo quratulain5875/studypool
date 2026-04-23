@@ -1,9 +1,9 @@
 <?php
-include 'dbConnection.php';
 session_start();
+require_once __DIR__ . '/dbconnection.php';
 
 if (!isset($_SESSION['user_id'])) {
-    echo "You must log in to sell a document.";
+    header('Location: signin.php');
     exit();
 }
 

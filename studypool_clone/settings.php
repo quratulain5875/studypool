@@ -1,13 +1,13 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: signin.php');
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
 // Fetch user data from the database
-include 'dbConnection.php';
+require_once __DIR__ . '/dbconnection.php';
 $query = "SELECT * FROM users WHERE id = $user_id";
 $result = $conn->query($query);
 $user = $result->fetch_assoc();

@@ -1,4 +1,9 @@
 <?php
+// Compatibility shim for case-sensitive filesystems (Linux containers).
+// The actual implementation lives in `dbconnection.php`.
+require_once __DIR__ . '/dbconnection.php';
+?>
+<?php
 // dbConnection.php
 // Uses environment variables (Docker) with fallback to local defaults (XAMPP)
 $servername = getenv('DB_HOST') ?: "localhost";

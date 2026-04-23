@@ -1,12 +1,19 @@
 <?php
-include 'dbConnection.php';
 session_start();
+require_once __DIR__ . '/dbconnection.php';
 
-$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Not authenticated']);
+    exit;
+}
+
+$user_id = (int) $_SESSION['user_id'];
 
 // Get the selected subject from POST request
-$subject = $_POST['subject'];
-$subject_filter = $subject !== 'all' ? "AND category = '$subject'" : '';
+$subject = $_POST['subject'] ?? 'all';
+$subject_safe = $conn->real_escape_string($subject);
+$subject_filter = $subject_safe !== 'all' ? "AND category = '$subject_safe'" : '';
 
 // Fetch filtered questions
 $questions_query = "SELECT * FROM questions WHERE user_id = $user_id $subject_filter";

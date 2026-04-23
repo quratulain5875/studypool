@@ -69,12 +69,8 @@
 
     <div class="container mt-5">
         <?php
-        // Database connection
-        $conn = new mysqli("localhost:3307", "root", "", "studypool_clone");
-
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
+        // Database connection (Docker: uses env vars from dbconnection.php)
+        require_once __DIR__ . '/dbconnection.php';
 
         // Check if 'id' is set in the URL
         if (isset($_GET['id']) && is_numeric($_GET['id'])) {

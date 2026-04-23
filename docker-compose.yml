@@ -10,9 +10,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: studypool-app
-    image: fa23-bcs-195:latest
+    image: quratulain5876/fa23-bcs-195:latest
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
       db:
         condition: service_healthy

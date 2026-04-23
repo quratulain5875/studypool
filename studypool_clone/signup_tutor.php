@@ -1,5 +1,5 @@
 <?php
-include 'dbConnection.php';
+require_once __DIR__ . '/dbconnection.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $conn->real_escape_string($_POST['email']);

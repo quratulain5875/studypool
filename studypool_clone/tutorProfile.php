@@ -1,5 +1,5 @@
 <?php
-include 'dbConnection.php';
+require_once __DIR__ . '/dbconnection.php';
 session_start();
 
 if (isset($_GET['id'])) {

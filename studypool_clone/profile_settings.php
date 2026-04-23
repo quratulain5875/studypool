@@ -1,9 +1,9 @@
 <?php
 session_start();
-include('dbconnection.php'); // Include the database connection
+require_once __DIR__ . '/dbconnection.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php'); // Redirect if user is not logged in
+    header('Location: signin.php'); // Redirect if user is not logged in
     exit();
 }
 

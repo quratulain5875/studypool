@@ -1,0 +1,4 @@
+/* Minimal global styles (many pages link here; missing file caused noisy 404s in the browser) */
+html, body { height: 100%; }
+body { margin: 0; }
+img { max-width: 100%; height: auto; }

@@ -1,6 +1,6 @@
 <?php
 // Include the database connection file
-include 'dbConnection.php';
+require_once __DIR__ . '/dbconnection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Sanitize and validate form inputs
