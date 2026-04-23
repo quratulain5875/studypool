@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studypool-db
+  labels:
+    app: studypool-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: studypool-db
+  template:
+    metadata:
+      labels:
+        app: studypool-db
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "root_password"
+        - name: MYSQL_DATABASE
+          value: "studypool_clone"
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        emptyDir: {} # Use emptyDir for simplicity in student accounts, or PVC for production

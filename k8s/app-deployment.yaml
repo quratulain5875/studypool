@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studypool-app
+  labels:
+    app: studypool-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: studypool-app
+  template:
+    metadata:
+      labels:
+        app: studypool-app
+    spec:
+      containers:
+      - name: app
+        image: quratulain5876/fa23-bcs-195:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: DB_HOST
+          value: "db"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASSWORD
+          value: "root_password"
+        - name: DB_NAME
+          value: "studypool_clone"
