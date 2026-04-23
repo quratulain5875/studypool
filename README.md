@@ -1,6 +1,6 @@
 
 # Studypool_Clone: Learning Platform
-
+#to changee and removal for project
 An interactive, three-tier web application designed to **bridge the gap between students and tutors**. This platform facilitates academic collaboration by allowing students to post questions and purchase resources while providing tutors with a space to share knowledge and manage academic tasks.
 
 ---
