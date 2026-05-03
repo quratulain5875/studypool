@@ -27,6 +27,9 @@ spec:
         - name: DB_USER
           value: "root"
         - name: DB_PASSWORD
-          value: "root_password"
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-root-password
         - name: DB_NAME
           value: "studypool_clone"

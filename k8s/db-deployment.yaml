@@ -21,12 +21,22 @@ spec:
         - containerPort: 3306
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: "root_password"
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-root-password
         - name: MYSQL_DATABASE
           value: "studypool_clone"
         volumeMounts:
-        - name: mysql-persistent-storage
+        - name: mysql-data
           mountPath: /var/lib/mysql
+        - name: db-init-script
+          mountPath: /docker-entrypoint-initdb.d
       volumes:
-      - name: mysql-persistent-storage
-        emptyDir: {} # Use emptyDir for simplicity in student accounts, or PVC for production
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      - name: db-init-script
+        configMap:
+          name: db-init-sql
+
