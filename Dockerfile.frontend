@@ -1,0 +1,29 @@
+# ============================================================
+# Dockerfile.frontend - Nginx Reverse Proxy / Static File Server
+# Studypool Clone - Presentation Tier
+# Tag: FA23-BCS-195
+# ============================================================
+
+# Using official Nginx Alpine image for minimal footprint
+FROM nginx:1.25-alpine
+
+# Remove the default Nginx configuration
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy our custom Nginx configuration
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Copy the entire application directory for static file serving
+# Nginx will only serve static files; PHP is proxied to backend
+COPY studypool_clone/ /var/www/html/
+
+# Create uploads directory for user-uploaded content
+RUN mkdir -p /var/www/html/uploads/guides \
+    && mkdir -p /var/www/html/uploads/notes \
+    && chown -R nginx:nginx /var/www/html
+
+# Expose HTTP port
+EXPOSE 80
+
+# Start Nginx in the foreground
+CMD ["nginx", "-g", "daemon off;"]

@@ -17,6 +17,7 @@ desktop.ini
 README.md
 Poster.jpeg
 *.sql
+!studypool_clone (2).sql
 
 # Docker files (no need to copy these into the image)
 Dockerfile

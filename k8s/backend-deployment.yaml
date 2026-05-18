@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studypool-backend
+  labels:
+    app: studypool-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: studypool-backend
+  template:
+    metadata:
+      labels:
+        app: studypool-backend
+    spec:
+      containers:
+      - name: backend
+        image: quratulain5876/fa23-bcs-195:latest
+        ports:
+        - containerPort: 9000
+        env:
+        - name: DB_HOST
+          value: "db"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-root-password
+        - name: DB_NAME
+          value: "studypool_clone"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"

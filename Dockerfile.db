@@ -1,0 +1,23 @@
+# ============================================================
+# Dockerfile.db - MySQL Database Server
+# Studypool Clone - Data Tier
+# Tag: FA23-BCS-195
+# ============================================================
+
+# Use official MySQL 8.0 image
+FROM mysql:8.0
+
+# Set environment variables for database initialization
+ENV MYSQL_ROOT_PASSWORD=root_password
+ENV MYSQL_DATABASE=studypool_clone
+
+# Copy the SQL dump into the Docker entrypoint init directory
+# MySQL will automatically execute any .sql files placed here
+# on first container startup (when data directory is empty)
+COPY ["studypool_clone (2).sql", "/docker-entrypoint-initdb.d/init.sql"]
+
+# Expose MySQL default port
+EXPOSE 3306
+
+# Use the default MySQL entrypoint and command
+# (inherited from the base image)

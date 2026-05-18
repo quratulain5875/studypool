@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studypool-frontend
+  labels:
+    app: studypool-frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: studypool-frontend
+  template:
+    metadata:
+      labels:
+        app: studypool-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: quratulain5876/fa23-bcs-195:frontend
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "250m"

@@ -1,0 +1,207 @@
+# ============================================================
+# GitHub Actions CI/CD Pipeline - Studypool Clone
+# FA23-BCS-195
+# ============================================================
+# Trigger: Push to main OR Pull Request to main
+# Stages: Build → Test → Docker Push → Deploy to AKS
+# ============================================================
+
+name: Studypool CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  DOCKER_IMAGE: quratulain5876/fa23-bcs-195
+  AKS_CLUSTER_NAME: studypool-aks
+  AKS_RESOURCE_GROUP: studypool-rg
+
+jobs:
+  # ============================================
+  # STAGE 1: BUILD (Frontend + Backend)
+  # ============================================
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Build Frontend Docker image
+        run: |
+          echo "=== Building Frontend (Nginx) ==="
+          docker build -f Dockerfile.frontend -t ${{ env.DOCKER_IMAGE }}-frontend:${{ github.sha }} .
+          echo "Frontend build successful!"
+
+      - name: Build Backend Docker image
+        run: |
+          echo "=== Building Backend (PHP-FPM) ==="
+          docker build -f Dockerfile.backend -t ${{ env.DOCKER_IMAGE }}-backend:${{ github.sha }} .
+          echo "Backend build successful!"
+
+      - name: Build Database Docker image
+        run: |
+          echo "=== Building Database (MySQL) ==="
+          docker build -f Dockerfile.db -t ${{ env.DOCKER_IMAGE }}-db:${{ github.sha }} .
+          echo "Database build successful!"
+
+      - name: Verify Docker images
+        run: |
+          echo "=== Built Docker Images ==="
+          docker images | grep fa23-bcs-195
+
+  # ============================================
+  # STAGE 2: AUTOMATED TESTS
+  # ============================================
+  test:
+    name: Run Automated Tests
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: PHP Lint Check (Syntax Validation)
+        run: |
+          echo "=== Running PHP Syntax Checks ==="
+          docker run --rm -v ${{ github.workspace }}/studypool_clone:/app php:8.2-cli bash -c "
+            echo 'Checking PHP files for syntax errors...'
+            error_count=0
+            for file in /app/*.php; do
+              if ! php -l \"\$file\" 2>&1 | grep -q 'No syntax errors'; then
+                echo \"FAIL: \$file\"
+                error_count=\$((error_count + 1))
+              fi
+            done
+            if [ \$error_count -gt 0 ]; then
+              echo \"Found \$error_count file(s) with syntax errors!\"
+              exit 1
+            fi
+            echo 'All PHP files passed syntax checks!'
+          "
+
+      - name: Docker Compose Health Check
+        run: |
+          echo "=== Starting services with Docker Compose ==="
+          docker compose up -d --build
+
+          echo "=== Waiting for services to be healthy (60s max) ==="
+          sleep 30
+
+          echo "=== Checking container status ==="
+          docker compose ps
+
+          echo "=== Testing frontend HTTP response ==="
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/ || echo "000")
+            echo "Attempt $i: HTTP $STATUS"
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "302" ]; then
+              echo "Application is responding!"
+              break
+            fi
+            sleep 10
+          done
+
+          echo "=== Container Logs (Frontend) ==="
+          docker compose logs frontend --tail=20
+
+          echo "=== Container Logs (Backend) ==="
+          docker compose logs backend --tail=20
+
+          echo "=== Stopping services ==="
+          docker compose down
+
+  # ============================================
+  # STAGE 3: DOCKER IMAGE BUILD & PUSH
+  # ============================================
+  docker-push:
+    name: Push Docker Images to Registry
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Backend image
+        run: |
+          echo "=== Building & Pushing Backend Image ==="
+          docker build -f Dockerfile.backend -t ${{ env.DOCKER_IMAGE }}:latest .
+          docker build -f Dockerfile.backend -t ${{ env.DOCKER_IMAGE }}:${{ github.sha }} .
+          docker push ${{ env.DOCKER_IMAGE }}:latest
+          docker push ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          echo "Backend image pushed successfully!"
+
+      - name: Build and Push Frontend image
+        run: |
+          echo "=== Building & Pushing Frontend Image ==="
+          docker build -f Dockerfile.frontend -t ${{ env.DOCKER_IMAGE }}:frontend .
+          docker push ${{ env.DOCKER_IMAGE }}:frontend
+          echo "Frontend image pushed successfully!"
+
+      - name: Verify pushed images
+        run: |
+          echo "=== Pushed Images ==="
+          echo "${{ env.DOCKER_IMAGE }}:latest"
+          echo "${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
+          echo "${{ env.DOCKER_IMAGE }}:frontend"
+
+  # ============================================
+  # STAGE 4: DEPLOY TO KUBERNETES (AKS)
+  # ============================================
+  deploy:
+    name: Deploy to Azure AKS
+    runs-on: ubuntu-latest
+    needs: docker-push
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v4
+        with:
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+
+      - name: Deploy to AKS
+        run: |
+          echo "=== Applying Kubernetes manifests ==="
+          kubectl apply -f k8s/
+
+          echo "=== Waiting for rollout ==="
+          kubectl rollout status deployment/studypool-frontend --timeout=120s
+          kubectl rollout status deployment/studypool-backend --timeout=120s
+          kubectl rollout status deployment/studypool-db --timeout=120s
+
+      - name: Verify Deployment
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -o wide
+
+          echo ""
+          echo "=== Service Status ==="
+          kubectl get svc
+
+          echo ""
+          echo "=== Deployment Status ==="
+          kubectl get deployments
+
+          echo ""
+          echo "=== Application URL ==="
+          kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+          echo ""
